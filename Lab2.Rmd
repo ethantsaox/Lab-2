@@ -1,0 +1,240 @@
+---
+title: "Paper Airplane Experiment"
+author: "Ethan Tsao"
+date: "2024-10-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+In today’s lab, we will investigate the question posed in the Day 1 lecture slides: “Does a paperclip on the
+nose of a paper airplane make it fly further?”
+
+## Methods
+
+### Aim of the lab
+
+The aim of this lab is to determine whether placing a paperclip on the nose of a paper airplane makes it fly further. The hypothesis will be tested by comparing the flight distances of the same paper airplane with and without a paperclip, for each group member.
+
+### Throwing the Paper Airplanes
+
+Each group member threw the paper airplane both with and without a paperclip attached to the nose. To ensure accuracy, each throw was done from the same standing position along a tape measure, and the distance flown in the direction of the tape measure was recorded. The first point of ground contact was marked as the end of the flight, without including any sliding after the initial contact.
+
+### Randomization of Throws
+
+The order in which each person threw the airplane (with and without the paperclip) was randomized. We used the sample() function in R to shuffle the order of throws. Here’s an example:
+
+```{r}
+trials <- c("Lean_with", "Lean_without", "Suhani_with", "Suhani_without", 
+            "Hsinpin_with", "Hsinpin_without", "Alexandra_with", "Alexandra_without", 
+            "Ethan_with", "Ethan_without")
+
+set.seed(1234)
+ordered_trials <- sample(trials)
+
+trials_matrix <- matrix(ordered_trials, nrow = 5, ncol = 2, byrow = TRUE)
+
+print(trials_matrix)
+```
+
+### Technical Issues
+
+One technical issue we encountered was the deterioration of the paper airplane after multiple throws, which could have affected flight performance. The nose of the paper airplane after subsequent throws become more and more smushed, which could have affected the airplane's flight trajectory and distance. Additionally, placing the paperclip in exactly the same position each time was somewhat difficult. While we tried to standardize this placement, slight variations may have introduced some inconsistencies in flight distance.
+
+## Results
+
+### Raw Data
+
+The collected data for each student is shown below. The column wp represents the distances (in inches) with the paperclip, while wop represents the distances without the paperclip.
+
+```{r}
+wp <- c(257, 204, 134, 295, 234)
+wop <- c(312, 145, 117, 319, 209)
+differences <- wp - wop
+
+data_matrix <- cbind(With_Paperclip = wp, Without_Paperclip = wop, Difference = differences)
+
+rownames(data_matrix) <- c("Lean", "Suhani", "Hsinpin", "Alexandra", "Ethan")
+
+library(knitr)
+
+kable(data_matrix, caption = "Distances with and without Paperclip")
+```
+
+```{r}
+wp_n <- length(wp)
+wop_n <- length(wop)
+diff_n <- length(differences)
+
+wp_mean <- mean(wp)
+wop_mean <- mean(wop)
+diff_mean <- mean(differences)
+
+wp_sd <- sd(wp)
+wop_sd <- sd(wop)
+diff_sd <- sd(differences)
+
+summary_stats <- matrix(c(wp_n, wp_mean, wp_sd,
+                          wop_n, wop_mean, wop_sd,
+                          diff_n, diff_mean, diff_sd), nrow=3, byrow=TRUE)
+
+colnames(summary_stats) <- c("n", "mean", "sd")
+rownames(summary_stats) <- c("with_paperclip", "without_paperclip", "differences")
+
+library(knitr)
+
+kable(summary_stats, caption = "Summary Statistics for With Paperclip, Without Paperclip, and Differences")
+```
+
+## Hypothesis Test
+
+* Null Hypothesis: The paperclip does not make a difference in the flight distance of the airplane, i.e., the mean difference is 0.
+
+* Alternative Hypothesis: The paperclip makes a difference in the flight distance, i.e., the mean difference is not 0.
+
+We perform a paired t-test to determine if the paperclip has a significant effect on flight distance.
+
+```{r}
+wp <- c(257, 204, 134, 295, 234)
+
+wop <- c(312, 145, 117, 319, 209)
+
+t.test(wp, wop,
+       alternative = c("two.sided", "less", "greater"),
+       mu = 0, paired = TRUE, var.equal = FALSE,
+       conf.level = 0.95)
+```
+* t-statistic: 0.264
+* p-value: 0.804
+* 95% confidence interval: (-36.35, 45.15)
+* Mean difference: 4.4 inches
+
+### Conclusion
+
+Based on the paired t-test, the p-value is 0.804, which is much greater than the typical significance level of 0.05. Therefore, we fail to reject the null hypothesis. There is no significant evidence that the paperclip affects the flight distance of the airplane.
+
+The 95% confidence interval for the mean difference (-36.35, 45.15) includes 0, which further supports the conclusion that there is no significant difference in flight distance.
+
+## Discussion
+
+### Assumptions
+
+The paired t-test assumes:
+
+1. The differences between the two groups (with and without paperclip) are normally distributed.
+2. The samples are independent of each other.
+
+Given the small sample size (n = 5), it is difficult to definitively assess whether the normality assumption holds. However, based on the data collected, we believe the assumptions are reasonable for this analysis.
+
+### Drawbacks of the Study Design
+
+Several limitations may have affected the results:
+
+* Sample size: A larger number of participants or more throws per participant might have provided more reliable results.
+
+* Single airplane: Using only one paper airplane may have introduced bias if the airplane’s structure was affected over time (e.g., damage or deformation). Having each participant build their own airplane might yield different results.
+
+* Paperclip placement: Despite efforts to place the paperclip consistently, slight variations could have impacted the flight distance.
+	
+* Environmental conditions: Factors like wind or uneven throwing technique could have contributed to variability in the distances recorded.
+
+## Part 2: Other Exercises
+
+### Exercise 2.8 (part c)
+
+```{r}
+# Values
+difference_in_means <- 2.35
+t0 <- 2.01
+p_value <- 0.0298
+alpha <- 0.05
+df <- 18
+```
+
+### Part A:
+
+```{r}
+SE <- difference_in_means / t0
+SE
+```
+
+### Part B:
+
+We are given a p-value of 0.0298. Since this value is relatively small and given that no direction is specified (greater than or less than), it suggests a two-sided test.
+
+### Part C:
+
+At $\alpha$ = 0.05 :
+
+* The p-value = 0.0298 is less than 0.05.
+* We reject the null hypothesis, concluding that there is significant evidence to suggest that the means are different.
+
+### Part D:
+
+```{r}
+critical_value <- qt(0.95, df)
+lower <- difference_in_means - (critical_value * SE)
+upper <- difference_in_means + (critical_value * SE)
+CI <- c(lower, upper)
+print(CI)
+```
+
+### Exercise 2.19
+
+```{r}
+# Values
+shelf_life <- c(108, 124, 124, 106, 115, 138, 163, 159, 134, 139)
+n <- length(shelf_life)
+```
+
+
+### Part A:
+
+* Null Hypothesis (H0): The mean shelf life of the carbonated beverage is less than or equal to 120 days.
+
+* $H0$: $\mu$ $\leq 120$
+
+*	Alternative Hypothesis (Ha): The mean shelf life of the carbonated beverage is greater than 120 days.
+
+* $Ha$: $\mu$ $> 120$
+
+### Part B:
+
+```{r}
+t_result <- t.test(shelf_life, mu = 120, alternative = "greater")
+t_result
+```
+Since our p-value of 0.05441 is less than $\alpha$ $= 0.01$, we fail to reject the null hypothesis. There is not enough evidence to suggest the mean shelf life exceeds 120 days.
+
+### Part C:
+
+```{r}
+p_value <- t_result$p.value
+p_value
+```
+
+### Part D:
+
+```{r}
+n <- length(shelf_life)
+mean_shelf_life <- mean(shelf_life) 
+sd_shelf_life <- sd(shelf_life)
+alpha <- 0.01
+
+df <- n - 1 
+critical_value <- qt(1 - alpha / 2, df)
+
+margin_of_error <- critical_value * (sd_shelf_life / sqrt(n))
+
+lower <- mean_shelf_life - margin_of_error
+upper <- mean_shelf_life + margin_of_error
+CI <- c(lower, upper)
+CI
+```
+
+
+
+
